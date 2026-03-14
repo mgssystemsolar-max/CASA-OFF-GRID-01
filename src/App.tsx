@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Plus, Printer, Trash2 } from 'lucide-react';
+import { Plus, Printer, Trash2, LayoutDashboard, Users, FolderOpen, Settings, Calculator, FileText } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface LoadItem {
@@ -77,92 +77,92 @@ export default function App() {
     setItens(itens.filter(item => item.id !== id));
   };
 
-  const {
-    maiorPico,
-    nP,
-    bat,
-    amp,
-    bit,
-    inv,
-    man,
-    lucro,
-    quedaTensao,
-    quedaPercentual,
-    totalWh,
-    consumoCorrigido,
-    geracaoEstimada,
-    bateriasEmParalelo,
-    bateriasEmSerie,
-    totalBaterias
-  } = useMemo(() => {
-    let totalWh = 0;
-    let totalWNominal = 0;
-    let maiorPicoExtra = 0;
-    const hsp = 5;
-
-    itens.forEach(it => {
-      const qtd = it.qtd > 0 ? it.qtd : 1;
-      totalWh += (it.w * it.h * qtd);
-      totalWNominal += (it.w * qtd);
-      
-      // O pico extra é a potência que o equipamento exige ALÉM da sua potência nominal na partida
-      const fator = it.fatorPartida > 0 ? it.fatorPartida : 1;
-      const picoExtra = (it.w * qtd) * (fator - 1);
-      
-      if (picoExtra > maiorPicoExtra) maiorPicoExtra = picoExtra;
-    });
-
-    const consumoCorrigido = totalWh * (1 + (fatorCorrecaoConsumo / 100));
-
-    // O inversor precisa suportar a soma de todas as potências nominais + o pior pico de partida extra
-    const maiorPico = totalWNominal + maiorPicoExtra;
-
-    const efi = (eficienciaInversor > 0 ? eficienciaInversor : 100) / 100;
-    const efiSys = (eficienciaSistema > 0 ? eficienciaSistema : 100) / 100;
-    const Ed = consumoCorrigido / efi;
-
-    const nP = Math.ceil((Ed * 1.25) / (hsp * potPainel));
-    const geracaoEstimada = nP * potPainel * hsp * efiSys;
-    
-    const Kp = dod / 100;
-    const Kc = eficienciaCoulombica / 100;
-    const bat = (Ed * fatorTemperatura * diasAutonomia) / (Kp * Kc * tensao);
-    
-    const bateriasEmParalelo = Math.round(bat / capacidadeBateriaIndividual);
-    const bateriasEmSerie = Math.ceil(tensao / tensaoBateriaIndividual);
-    const totalBaterias = bateriasEmParalelo * bateriasEmSerie;
-    
-    const amp = (nP * potPainel) / tensao;
-    
-    let bit = amp > 50 ? 16 : (amp > 30 ? 10 : 6);
-
-    const inv = (nP * potPainel) * 5.8;
-    const eco = (totalWh / 1000) * 30 * 0.95;
-    const man = (tipoBateria === 'Lítio') ? (bat * tensao * 1.2) : (bat * tensao * 3.5);
-    const lucro = ((eco * 12 * 10) - inv - man);
-
-    const ampControlador = isNaN(amp) || !isFinite(amp) ? 0 : Math.ceil(amp * 1.1);
-    const quedaTensao = bit > 0 ? (2 * comprimentoCabo * ampControlador * 0.0175) / bit : 0;
-    const quedaPercentual = tensao > 0 ? (quedaTensao / tensao) * 100 : 0;
-
-    return {
-      maiorPico: Math.ceil(maiorPico),
-      nP: isNaN(nP) || !isFinite(nP) ? 0 : nP,
-      bat: isNaN(bat) || !isFinite(bat) ? 0 : Math.ceil(bat),
-      amp: ampControlador,
-      bit,
-      inv: isNaN(inv) ? 0 : inv,
-      man: isNaN(man) ? 0 : man,
-      lucro: isNaN(lucro) ? 0 : lucro,
+    const {
+      maiorPico,
+      nP,
+      bat,
+      amp,
+      bitola,
+      inv,
+      man,
+      lucro,
       quedaTensao,
       quedaPercentual,
       totalWh,
       consumoCorrigido,
       geracaoEstimada,
-      bateriasEmParalelo: isNaN(bateriasEmParalelo) || !isFinite(bateriasEmParalelo) ? 0 : bateriasEmParalelo,
-      bateriasEmSerie: isNaN(bateriasEmSerie) || !isFinite(bateriasEmSerie) ? 0 : bateriasEmSerie,
-      totalBaterias: isNaN(totalBaterias) || !isFinite(totalBaterias) ? 0 : totalBaterias
-    };
+      bateriasEmParalelo,
+      bateriasEmSerie,
+      totalBaterias
+    } = useMemo(() => {
+      let totalWh = 0;
+      let totalWNominal = 0;
+      let maiorPicoExtra = 0;
+      const hsp = 5;
+  
+      itens.forEach(it => {
+        const qtd = it.qtd > 0 ? it.qtd : 1;
+        totalWh += (it.w * it.h * qtd);
+        totalWNominal += (it.w * qtd);
+        
+        // O pico extra é a potência que o equipamento exige ALÉM da sua potência nominal na partida
+        const fator = it.fatorPartida > 0 ? it.fatorPartida : 1;
+        const picoExtra = (it.w * qtd) * (fator - 1);
+        
+        if (picoExtra > maiorPicoExtra) maiorPicoExtra = picoExtra;
+      });
+  
+      const consumoCorrigido = totalWh * (1 + (fatorCorrecaoConsumo / 100));
+  
+      // O inversor precisa suportar a soma de todas as potências nominais + o pior pico de partida extra
+      const maiorPico = totalWNominal + maiorPicoExtra;
+  
+      const efi = (eficienciaInversor > 0 ? eficienciaInversor : 100) / 100;
+      const efiSys = (eficienciaSistema > 0 ? eficienciaSistema : 100) / 100;
+      const Ed = consumoCorrigido / efi;
+  
+      const nP = Math.ceil((Ed * 1.25) / (hsp * potPainel));
+      const geracaoEstimada = nP * potPainel * hsp * efiSys;
+      
+      const Kp = dod / 100;
+      const Kc = eficienciaCoulombica / 100;
+      const bat = (Ed * fatorTemperatura * diasAutonomia) / (Kp * Kc * tensao);
+      
+      const bateriasEmParalelo = Math.round(bat / capacidadeBateriaIndividual);
+      const bateriasEmSerie = Math.ceil(tensao / tensaoBateriaIndividual);
+      const totalBaterias = bateriasEmParalelo * bateriasEmSerie;
+      
+      const amp = (nP * potPainel) / tensao;
+      
+      let bitola = amp > 50 ? 16 : (amp > 30 ? 10 : 6);
+  
+      const inv = (nP * potPainel) * 5.8;
+      const eco = (totalWh / 1000) * 30 * 0.95;
+    const man = (tipoBateria === 'Lítio') ? (bat * tensao * 1.2) : (bat * tensao * 3.5);
+    const lucro = ((eco * 12 * 10) - inv - man);
+
+      const ampControlador = isNaN(amp) || !isFinite(amp) ? 0 : Math.ceil(amp * 1.1);
+      const quedaTensao = bitola > 0 ? (2 * comprimentoCabo * ampControlador * 0.0175) / bitola : 0;
+      const quedaPercentual = tensao > 0 ? (quedaTensao / tensao) * 100 : 0;
+  
+      return {
+        maiorPico: Math.ceil(maiorPico),
+        nP: isNaN(nP) || !isFinite(nP) ? 0 : nP,
+        bat: isNaN(bat) || !isFinite(bat) ? 0 : Math.ceil(bat),
+        amp: ampControlador,
+        bitola,
+        inv: isNaN(inv) ? 0 : inv,
+        man: isNaN(man) ? 0 : man,
+        lucro: isNaN(lucro) ? 0 : lucro,
+        quedaTensao,
+        quedaPercentual,
+        totalWh,
+        consumoCorrigido,
+        geracaoEstimada,
+        bateriasEmParalelo: isNaN(bateriasEmParalelo) || !isFinite(bateriasEmParalelo) ? 0 : bateriasEmParalelo,
+        bateriasEmSerie: isNaN(bateriasEmSerie) || !isFinite(bateriasEmSerie) ? 0 : bateriasEmSerie,
+        totalBaterias: isNaN(totalBaterias) || !isFinite(totalBaterias) ? 0 : totalBaterias
+      };
   }, [itens, potPainel, tensao, tipoBateria, comprimentoCabo, eficienciaInversor, fatorCorrecaoConsumo, eficienciaSistema, diasAutonomia, dod, eficienciaCoulombica, fatorTemperatura, capacidadeBateriaIndividual, tensaoBateriaIndividual]);
 
   const formatCurrency = (value: number) => {
@@ -170,80 +170,124 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 p-4 md:p-8 font-sans">
-      <div className="max-w-6xl mx-auto">
-        <header className="flex justify-between items-center mb-8 print:hidden">
-          <h1 className="text-3xl font-black text-slate-800">
+    <div className="min-h-screen bg-[#f1f5f9] font-sans text-slate-800 flex">
+      {/* Sidebar */}
+      <aside className="w-64 bg-[#0f172a] text-white hidden md:flex flex-col fixed h-full z-10">
+        <div className="p-6 flex items-center gap-3 border-b border-slate-800">
+          <div className="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center">
+            <span className="font-bold text-[#0f172a]">S</span>
+          </div>
+          <h1 className="text-xl font-black tracking-tight">
             SOLAR<span className="text-yellow-500">PRO</span>
           </h1>
-          <button 
-            onClick={() => window.print()} 
-            className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-400 transition-colors text-black px-6 py-2 rounded-xl font-bold"
-          >
-            <StepBadge num={9} />
-            <Printer size={20} />
-            PDF Proposta
-          </button>
-        </header>
+        </div>
+        <nav className="flex-1 p-4 space-y-2">
+          <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-400 font-medium transition-colors">
+            <LayoutDashboard size={20} />
+            Dashboard
+          </a>
+          <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-400 font-medium transition-colors">
+            <Users size={20} />
+            Clientes
+          </a>
+          <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-400 font-medium transition-colors">
+            <FolderOpen size={20} />
+            Projetos
+          </a>
+          <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-900/30 text-blue-400 font-medium transition-colors">
+            <Calculator size={20} />
+            Dimensionamento
+          </a>
+          <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-400 font-medium transition-colors">
+            <FileText size={20} />
+            Relatórios
+          </a>
+          <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-400 font-medium transition-colors">
+            <Settings size={20} />
+            Configurações
+          </a>
+        </nav>
+      </aside>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white p-6 rounded-3xl shadow-md">
-              <h2 className="font-bold uppercase text-slate-500 mb-4 flex items-center">
-                <StepBadge num={1} /> Dados do Cliente
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label className="block text-sm font-bold text-slate-700">
+      {/* Main Content */}
+      <div className="flex-1 md:ml-64 p-4 md:p-8">
+        <div className="max-w-7xl mx-auto">
+          <header className="flex justify-between items-center mb-8 print:hidden">
+            <div>
+              <h2 className="text-2xl font-bold text-slate-800">Dimensionamento Solar</h2>
+              <p className="text-slate-500 text-sm">Configure o sistema off-grid para seu cliente</p>
+            </div>
+            <button 
+              onClick={() => window.print()} 
+              className="flex items-center gap-2 bg-[#1e3a8a] hover:bg-blue-800 transition-colors text-white px-6 py-2.5 rounded-xl font-medium shadow-sm"
+            >
+              <Printer size={18} />
+              Exportar Proposta
+            </button>
+          </header>
+
+          <div className="grid xl:grid-cols-3 gap-6">
+            <div className="xl:col-span-2 space-y-6">
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <h2 className="font-bold text-slate-800 mb-5 flex items-center text-lg">
+                  <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-3">1</span>
+                  Dados do Cliente
+                </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <label className="block text-sm font-medium text-slate-700">
                   Nome do Cliente:
                   <input 
                     type="text" 
                     value={clienteNome} 
                     onChange={(e) => setClienteNome(e.target.value)} 
-                    className="mt-1 w-full bg-slate-50 p-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                     placeholder="Ex: João da Silva"
                   />
                 </label>
-                <label className="block text-sm font-bold text-slate-700">
+                <label className="block text-sm font-medium text-slate-700">
                   Telefone:
                   <input 
                     type="text" 
                     value={clienteTelefone} 
                     onChange={(e) => setClienteTelefone(e.target.value)} 
-                    className="mt-1 w-full bg-slate-50 p-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                     placeholder="(00) 00000-0000"
                   />
                 </label>
-                <label className="block text-sm font-bold text-slate-700">
+                <label className="block text-sm font-medium text-slate-700">
                   Email:
                   <input 
                     type="email" 
                     value={clienteEmail} 
                     onChange={(e) => setClienteEmail(e.target.value)} 
-                    className="mt-1 w-full bg-slate-50 p-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                     placeholder="joao@email.com"
                   />
                 </label>
-                <label className="block text-sm font-bold text-slate-700">
+                <label className="block text-sm font-medium text-slate-700">
                   Cidade/UF:
                   <input 
                     type="text" 
                     value={clienteCidade} 
                     onChange={(e) => setClienteCidade(e.target.value)} 
-                    className="mt-1 w-full bg-slate-50 p-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                     placeholder="São Paulo - SP"
                   />
                 </label>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-3xl shadow-md">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="font-bold uppercase text-slate-500 flex items-center"><StepBadge num={2} /> Cargas Solares</h2>
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+              <div className="flex justify-between items-center mb-5">
+                <h2 className="font-bold text-slate-800 flex items-center text-lg">
+                  <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-3">2</span>
+                  Cargas Solares
+                </h2>
                 <button 
                   onClick={adicionarLinha} 
-                  className="flex items-center gap-1 text-yellow-600 hover:text-yellow-700 font-bold transition-colors"
+                  className="flex items-center gap-1.5 text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-lg font-medium transition-colors"
                 >
-                  <Plus size={18} /> Adicionar
+                  <Plus size={16} /> Adicionar Carga
                 </button>
               </div>
               <div className="overflow-x-auto">
@@ -268,7 +312,7 @@ export default function App() {
                             type="text" 
                             value={item.nome} 
                             onChange={(e) => updateItem(item.id, 'nome', e.target.value)} 
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                             placeholder="Nome do equipamento"
                           />
                         </td>
@@ -277,7 +321,7 @@ export default function App() {
                             type="number" 
                             value={item.qtd || ''} 
                             onChange={(e) => updateItem(item.id, 'qtd', e.target.value)} 
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                             min="0"
                           />
                         </td>
@@ -286,12 +330,12 @@ export default function App() {
                             type="number" 
                             value={item.w || ''} 
                             onChange={(e) => updateItem(item.id, 'w', e.target.value)} 
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                             min="0"
                           />
                         </td>
                         <td className="py-2 pr-2">
-                          <div className="w-full bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-500 font-medium">
+                          <div className="w-full bg-slate-100/50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-500 font-medium">
                             {((item.w || 0) * (item.qtd || 0)).toLocaleString('pt-BR')}
                           </div>
                         </td>
@@ -300,7 +344,7 @@ export default function App() {
                             type="number" 
                             value={item.fatorPartida || ''} 
                             onChange={(e) => updateItem(item.id, 'fatorPartida', e.target.value)} 
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                             min="1"
                             step="0.1"
                             title="Multiplicador de pico de partida (ex: 5 para geladeiras)"
@@ -311,12 +355,12 @@ export default function App() {
                             type="number" 
                             value={item.h || ''} 
                             onChange={(e) => updateItem(item.id, 'h', e.target.value)} 
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                             min="0"
                             max="24"
                           />
                         </td>
-                        <td className="py-2 pr-4 text-right font-bold text-slate-600">
+                        <td className="py-2 pr-4 text-right font-bold text-slate-700">
                           {((item.w || 0) * (item.h || 0) * (item.qtd || 0)).toLocaleString('pt-BR')}
                         </td>
                         <td className="py-2 text-right">
@@ -333,19 +377,29 @@ export default function App() {
                   </tbody>
                   <tfoot>
                     <tr className="border-t-2 border-slate-200">
-                      <td colSpan={6} className="py-3 text-right font-bold text-slate-500 uppercase text-xs tracking-wider">
+                      <td colSpan={6} className="py-3 text-right font-medium text-slate-500 text-sm">
                         Consumo Base
                       </td>
-                      <td className="py-3 pr-4 text-right font-black text-slate-800 text-lg">
+                      <td className="py-3 pr-4 text-right font-bold text-slate-800 text-lg">
                         {totalWh.toLocaleString('pt-BR')} Wh
                       </td>
                       <td></td>
                     </tr>
-                    <tr className="border-t border-slate-100 bg-yellow-50/50">
-                      <td colSpan={6} className="py-3 text-right font-bold text-yellow-600 uppercase text-xs tracking-wider">
-                        Consumo Corrigido (+{fatorCorrecaoConsumo}%)
+                    <tr className="border-t border-slate-100 bg-[#f59e0b]/10">
+                      <td colSpan={6} className="py-3 pr-4 text-right font-medium text-[#f59e0b] text-sm">
+                        <div className="flex justify-end items-center gap-2">
+                          Consumo Corrigido (+
+                          <input 
+                            type="number" 
+                            value={fatorCorrecaoConsumo} 
+                            onChange={(e) => setFatorCorrecaoConsumo(parseFloat(e.target.value) || 0)} 
+                            className="w-14 bg-white border border-[#f59e0b]/30 rounded-md px-2 py-1 text-center text-[#f59e0b] focus:outline-none focus:ring-2 focus:ring-[#f59e0b]/50"
+                            min="0"
+                          />
+                          %)
+                        </div>
                       </td>
-                      <td className="py-3 pr-4 text-right font-black text-yellow-600 text-lg">
+                      <td className="py-3 pr-4 text-right font-bold text-[#f59e0b] text-lg">
                         {consumoCorrigido.toLocaleString('pt-BR')} Wh
                       </td>
                       <td></td>
@@ -357,182 +411,173 @@ export default function App() {
 
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-6">
-                <div className="bg-white p-6 rounded-3xl shadow-md space-y-4">
-                  <h3 className="font-bold text-xs uppercase text-slate-400 flex items-center"><StepBadge num={3} /> Configuração do Kit</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <label className="block text-sm font-bold text-slate-700">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-5">
+                  <h3 className="font-bold text-slate-800 flex items-center text-lg">
+                    <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-3">3</span>
+                    Configuração do Kit
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <label className="block text-sm font-medium text-slate-700">
                       Potência Painel (W): 
                       <input 
                         type="number" 
                         value={potPainel || ''} 
                         onChange={(e) => setPotPainel(parseFloat(e.target.value) || 0)} 
-                        className="mt-1 w-full bg-slate-50 p-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                       />
                     </label>
-                    <label className="block text-sm font-bold text-slate-700">
+                    <label className="block text-sm font-medium text-slate-700">
                       Margem Seg. Consumo (%): 
                       <input 
                         type="number" 
                         value={fatorCorrecaoConsumo || ''} 
                         onChange={(e) => setFatorCorrecaoConsumo(parseFloat(e.target.value) || 0)} 
-                        className="mt-1 w-full bg-slate-50 p-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                         min="0"
                       />
                     </label>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <label className="block text-sm font-bold text-slate-700">
+                  <div className="grid grid-cols-2 gap-4">
+                    <label className="block text-sm font-medium text-slate-700">
                       Efic. Inversor (%): 
                       <input 
                         type="number" 
                         value={eficienciaInversor || ''} 
                         onChange={(e) => setEficienciaInversor(parseFloat(e.target.value) || 0)} 
-                        className="mt-1 w-full bg-slate-50 p-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                         min="1"
                         max="100"
                       />
                     </label>
-                    <label className="block text-sm font-bold text-slate-700">
+                    <label className="block text-sm font-medium text-slate-700">
                       Efic. Geral Sist. (%): 
                       <input 
                         type="number" 
                         value={eficienciaSistema || ''} 
                         onChange={(e) => setEficienciaSistema(parseFloat(e.target.value) || 0)} 
-                        className="mt-1 w-full bg-slate-50 p-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                         min="1"
                         max="100"
                       />
                     </label>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <label className="block text-sm font-bold text-slate-700">
+                  <div className="grid grid-cols-2 gap-4">
+                    <label className="block text-sm font-medium text-slate-700">
                       Tensão do Sistema:
                       <select 
                         value={tensao} 
-                        onChange={(e) => setTensao(parseFloat(e.target.value))} 
-                        className="mt-1 w-full p-2 bg-slate-50 border border-slate-200 rounded-lg font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                        onChange={(e) => setTensao(Number(e.target.value))}
+                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                       >
-                        <option value="12">12V</option>
-                        <option value="24">24V</option>
-                        <option value="48">48V</option>
+                        <option value={12}>12V</option>
+                        <option value={24}>24V</option>
+                        <option value={48}>48V</option>
                       </select>
                     </label>
+                    <label className="block text-sm font-medium text-slate-700">
+                      Comprimento Cabo (m):
+                      <input 
+                        type="number" 
+                        value={comprimentoCabo || ''} 
+                        onChange={(e) => setComprimentoCabo(parseFloat(e.target.value) || 0)} 
+                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        min="1"
+                      />
+                    </label>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <label className="block text-sm font-bold text-slate-700">
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-5">
+                  <h3 className="font-bold text-slate-800 flex items-center text-lg">
+                    <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-3">4</span>
+                    Detalhes da Bateria
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <label className="block text-sm font-medium text-slate-700">
                       Tipo de Bateria:
                       <select 
                         value={tipoBateria} 
-                        onChange={(e) => setTipoBateria(e.target.value)} 
-                        className="mt-1 w-full p-2 bg-slate-50 border border-slate-200 rounded-lg font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                        onChange={(e) => setTipoBateria(e.target.value)}
+                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                       >
+                        <option value="Chumbo">Chumbo-Ácido</option>
                         <option value="Lítio">Lítio</option>
-                        <option value="Chumbo">Chumbo</option>
                       </select>
                     </label>
-                    <label className="block text-sm font-bold text-slate-700">
-                      Dias de Autonomia (Qd):
+                    <label className="block text-sm font-medium text-slate-700">
+                      Dias de Autonomia:
                       <input 
                         type="number" 
                         value={diasAutonomia || ''} 
                         onChange={(e) => setDiasAutonomia(parseFloat(e.target.value) || 0)} 
-                        className="mt-1 w-full bg-slate-50 p-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                         min="1"
-                        step="1"
                       />
                     </label>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <label className="block text-sm font-bold text-slate-700">
-                      DoD Máximo (%):
+                  <div className="grid grid-cols-2 gap-4">
+                    <label className="block text-sm font-medium text-slate-700">
+                      Profund. Descarga (DoD %):
                       <input 
                         type="number" 
                         value={dod || ''} 
                         onChange={(e) => setDod(parseFloat(e.target.value) || 0)} 
-                        className="mt-1 w-full bg-slate-50 p-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        min="1"
+                        max="100"
                       />
                     </label>
-                    <label className="block text-sm font-bold text-slate-700">
-                      Efic. Coulômbica (%):
+                    <label className="block text-sm font-medium text-slate-700">
+                      Efic. Coulombica (%):
                       <input 
                         type="number" 
                         value={eficienciaCoulombica || ''} 
                         onChange={(e) => setEficienciaCoulombica(parseFloat(e.target.value) || 0)} 
-                        className="mt-1 w-full bg-slate-50 p-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        min="1"
+                        max="100"
                       />
                     </label>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <label className="block text-sm font-bold text-slate-700">
-                      Fator Temp. (Kt):
-                      <input 
-                        type="number" 
-                        value={fatorTemperatura || ''} 
-                        onChange={(e) => setFatorTemperatura(parseFloat(e.target.value) || 0)} 
-                        className="mt-1 w-full bg-slate-50 p-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                        step="0.1"
-                      />
-                    </label>
-                    <label className="block text-sm font-bold text-slate-700">
-                      Capacidade Bat. (Ah):
+                  <div className="grid grid-cols-2 gap-4">
+                    <label className="block text-sm font-medium text-slate-700">
+                      Capacidade Individual (Ah):
                       <input 
                         type="number" 
                         value={capacidadeBateriaIndividual || ''} 
                         onChange={(e) => setCapacidadeBateriaIndividual(parseFloat(e.target.value) || 0)} 
-                        className="mt-1 w-full bg-slate-50 p-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        min="1"
+                      />
+                    </label>
+                    <label className="block text-sm font-medium text-slate-700">
+                      Tensão Individual (V):
+                      <input 
+                        type="number" 
+                        value={tensaoBateriaIndividual || ''} 
+                        onChange={(e) => setTensaoBateriaIndividual(parseFloat(e.target.value) || 0)} 
+                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        min="1"
                       />
                     </label>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <label className="block text-sm font-bold text-slate-700">
-                      Tensão Bat. (V):
-                      <select 
-                        value={tensaoBateriaIndividual} 
-                        onChange={(e) => setTensaoBateriaIndividual(parseFloat(e.target.value))} 
-                        className="mt-1 w-full p-2 bg-slate-50 border border-slate-200 rounded-lg font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                      >
-                        <option value="2">2V</option>
-                        <option value="12">12V</option>
-                        <option value="24">24V</option>
-                        <option value="48">48V</option>
-                      </select>
-                    </label>
-                  </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-3xl shadow-md space-y-4 border-l-4 border-blue-500">
-                  <h3 className="font-bold text-xs uppercase text-slate-400 flex items-center"><StepBadge num={4} /> Detalhes da Bateria</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-[10px] uppercase text-slate-400 font-semibold tracking-wider">Tipo</p>
-                      <div className="font-bold text-slate-700">{tipoBateria === 'Lítio' ? 'Lítio (LiFePO4)' : 'Chumbo-Ácido'}</div>
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase text-slate-400 font-semibold tracking-wider">Capacidade C20</p>
-                      <div className="font-bold text-slate-700">{bat} Ah</div>
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase text-slate-400 font-semibold tracking-wider">DoD / Autonomia</p>
-                      <div className="font-bold text-slate-700">{dod}% / {diasAutonomia} dias</div>
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase text-slate-400 font-semibold tracking-wider">Vida Útil Estimada</p>
-                      <div className="font-bold text-slate-700">{tipoBateria === 'Lítio' ? '+4.000 ciclos (~10 anos)' : '~500 ciclos (~5 anos)'}</div>
-                    </div>
-                  </div>
                 </div>
               </div>
+            </div>
 
-              <div className="space-y-6">
-                <div className="bg-slate-800 border border-slate-700 p-6 rounded-3xl text-white shadow-xl flex flex-col justify-between">
+            <div className="space-y-6">
+                <div className="bg-[#0f172a] border border-slate-700 p-6 rounded-2xl text-white shadow-lg flex flex-col justify-between">
                   <div>
-                    <p className="text-yellow-500 text-[10px] font-bold uppercase tracking-wider flex items-center mb-1"><StepBadge num={5} /> Inversor Mínimo (Pico)</p>
-                    <div className="text-4xl font-black mt-1">{maiorPico}W</div>
+                    <p className="text-[#f59e0b] text-xs font-bold uppercase tracking-wider flex items-center mb-2">
+                      <span className="w-6 h-6 rounded bg-[#f59e0b]/20 text-[#f59e0b] flex items-center justify-center mr-2">5</span>
+                      Inversor Mínimo (Pico)
+                    </p>
+                    <div className="text-4xl font-black mt-2">{maiorPico}W</div>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-slate-700 grid grid-cols-2 gap-4">
+                  <div className="mt-6 pt-5 border-t border-slate-700/50 grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-[10px] uppercase text-slate-400 font-semibold tracking-wider">Cabo Bat.</p>
-                      <div className="font-bold text-lg">{bit}mm²</div>
+                      <div className="font-bold text-lg">{bitola}mm²</div>
                     </div>
                     <div>
                       <p className="text-[10px] uppercase text-slate-400 font-semibold tracking-wider">Controlador</p>
@@ -541,33 +586,36 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-3xl shadow-md space-y-4 border-l-4 border-orange-500">
-                  <h3 className="font-bold text-xs uppercase text-slate-400 flex items-center mb-4"><StepBadge num={6} /> Queda de Tensão (CC)</h3>
-                  <label className="block text-sm font-bold text-slate-700">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-5 border-l-4 border-[#22c55e]">
+                  <h3 className="font-bold text-slate-800 flex items-center text-lg">
+                    <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-3">6</span>
+                    Queda de Tensão (CC)
+                  </h3>
+                  <label className="block text-sm font-medium text-slate-700">
                     Comprimento do Cabo (m):
                     <input 
                       type="number" 
                       value={comprimentoCabo || ''} 
                       onChange={(e) => setComprimentoCabo(parseFloat(e.target.value) || 0)} 
-                      className="mt-1 w-full bg-slate-50 p-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                       min="0.5"
                       step="0.5"
                     />
                   </label>
                   <div className="pt-2">
-                    <div className="flex justify-between items-end mb-1">
+                    <div className="flex justify-between items-end mb-2">
                       <span className="text-[10px] uppercase text-slate-400 font-semibold tracking-wider">Perda Estimada</span>
-                      <span className={`font-bold ${quedaPercentual <= 3 ? 'text-green-500' : quedaPercentual <= 5 ? 'text-yellow-500' : 'text-red-500'}`}>
+                      <span className={`font-bold ${quedaPercentual <= 3 ? 'text-[#22c55e]' : quedaPercentual <= 5 ? 'text-[#f59e0b]' : 'text-red-500'}`}>
                         {quedaPercentual.toFixed(2)}% ({quedaTensao.toFixed(2)}V)
                       </span>
                     </div>
-                    <div className="w-full bg-slate-200 rounded-full h-2.5">
+                    <div className="w-full bg-slate-100 rounded-full h-2">
                       <div 
-                        className={`h-2.5 rounded-full ${quedaPercentual <= 3 ? 'bg-green-500' : quedaPercentual <= 5 ? 'bg-yellow-500' : 'bg-red-500'}`} 
+                        className={`h-2 rounded-full transition-all duration-500 ${quedaPercentual <= 3 ? 'bg-[#22c55e]' : quedaPercentual <= 5 ? 'bg-[#f59e0b]' : 'bg-red-500'}`} 
                         style={{ width: `${Math.min(quedaPercentual, 100)}%` }}
                       ></div>
                     </div>
-                    <p className="text-[10px] text-slate-500 mt-2 font-medium">
+                    <p className="text-[11px] text-slate-500 mt-2 font-medium">
                       {quedaPercentual <= 3 
                         ? 'Queda aceitável (≤ 3%).' 
                         : quedaPercentual <= 5 
@@ -578,76 +626,86 @@ export default function App() {
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="space-y-6">
-            <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-3xl text-white shadow-2xl flex flex-col justify-center">
-              <h3 className="text-yellow-500 font-bold uppercase text-xs tracking-wider mb-8 flex items-center"><StepBadge num={7} /> Kit Solar Fotovoltaico</h3>
-              <div className="space-y-8">
-                <div>
-                  <p className="text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Painéis ({potPainel}W)</p>
-                  <div className="text-6xl font-black">{nP} <span className="text-2xl">unidades</span></div>
-                  <div className="mt-2 text-sm text-slate-400 font-medium">
-                    Potência Total: {(nP * potPainel).toLocaleString('pt-BR')} Wp
+            <div className="space-y-6">
+              <div className="bg-[#0f172a] p-8 rounded-2xl text-white shadow-lg flex flex-col justify-center relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[#1e3a8a] rounded-full blur-3xl opacity-20 -translate-y-1/2 translate-x-1/3"></div>
+                <h3 className="text-[#f59e0b] font-bold uppercase text-xs tracking-wider mb-8 flex items-center relative z-10">
+                  <span className="w-6 h-6 rounded bg-[#f59e0b]/20 text-[#f59e0b] flex items-center justify-center mr-2">7</span>
+                  Kit Solar Fotovoltaico
+                </h3>
+                <div className="space-y-8 relative z-10">
+                  <div>
+                    <p className="text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Painéis ({potPainel}W)</p>
+                    <div className="text-5xl font-black">{nP} <span className="text-xl font-medium text-slate-300">unidades</span></div>
+                    <div className="mt-2 text-sm text-slate-400 font-medium">
+                      Potência Total: {(nP * potPainel).toLocaleString('pt-BR')} Wp
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <p className="text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Baterias ({tensaoBateriaIndividual}V / {capacidadeBateriaIndividual}Ah)</p>
-                  <div className="text-4xl font-black text-yellow-500">{totalBaterias} <span className="text-2xl">unidades</span></div>
-                  <div className="mt-2 text-sm text-slate-400 font-medium">
-                    {bateriasEmParalelo} em paralelo × {bateriasEmSerie} em série
+                  <div className="pt-6 border-t border-slate-700/50">
+                    <p className="text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Baterias ({tensaoBateriaIndividual}V / {capacidadeBateriaIndividual}Ah)</p>
+                    <div className="text-4xl font-black text-[#f59e0b]">{totalBaterias} <span className="text-xl font-medium text-slate-300">unidades</span></div>
+                    <div className="mt-2 text-sm text-slate-400 font-medium">
+                      {bateriasEmParalelo} em paralelo × {bateriasEmSerie} em série
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="bg-white p-6 rounded-3xl shadow-md space-y-4">
-              <h3 className="font-bold text-xs uppercase text-slate-400 flex items-center"><StepBadge num={8} /> Balanço Energético Diário</h3>
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={[
-                      {
-                        name: 'Energia (Wh)',
-                        'Consumo Diário Total': totalWh,
-                        'Consumo Corrigido': consumoCorrigido,
-                        'Geração Solar Estimada': geracaoEstimada,
-                      },
-                    ]}
-                    margin={{ top: 20, right: 0, left: -20, bottom: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
-                    <Tooltip 
-                      cursor={{ fill: '#f1f5f9' }}
-                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                      formatter={(value: number) => [`${value.toLocaleString('pt-BR')} Wh`, '']}
-                    />
-                    <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
-                    <Bar dataKey="Consumo Diário Total" fill="#94a3b8" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                    <Bar dataKey="Consumo Corrigido" fill="#ef4444" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                    <Bar dataKey="Geração Solar Estimada" fill="#22c55e" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-5">
+                <h3 className="font-bold text-slate-800 flex items-center text-lg">
+                  <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-3">8</span>
+                  Balanço Energético Diário
+                </h3>
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={[
+                        {
+                          name: 'Energia (Wh)',
+                          'Consumo Diário Total': totalWh,
+                          'Consumo Corrigido': consumoCorrigido,
+                          'Geração Solar Estimada': geracaoEstimada,
+                        },
+                      ]}
+                      margin={{ top: 20, right: 0, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                      <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
+                      <Tooltip 
+                        cursor={{ fill: '#f1f5f9' }}
+                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                        formatter={(value: number) => [`${value.toLocaleString('pt-BR')} Wh`, '']}
+                      />
+                      <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                      <Bar dataKey="Consumo Diário Total" fill="#94a3b8" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                      <Bar dataKey="Consumo Corrigido" fill="#ef4444" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                      <Bar dataKey="Geração Solar Estimada" fill="#22c55e" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="lg:col-span-3 bg-white p-8 rounded-3xl shadow-xl border-t-4 border-green-500 print:break-inside-avoid">
-            <h2 className="text-xl font-black mb-6 italic text-slate-800">Análise de ROI (10 Anos)</h2>
+          <div className="mt-6 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:break-inside-avoid">
+            <h2 className="font-bold text-slate-800 flex items-center text-lg mb-6">
+              <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-3">9</span>
+              Análise de ROI (10 Anos)
+            </h2>
             <div className="grid md:grid-cols-3 gap-6">
-              <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Investimento</p>
-                <div className="text-2xl font-bold text-slate-700">{formatCurrency(inv)}</div>
+              <div className="p-5 bg-slate-50 rounded-xl border border-slate-200">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Investimento</p>
+                <div className="text-2xl font-bold text-slate-800">{formatCurrency(inv)}</div>
               </div>
-              <div className="p-5 bg-red-50 rounded-2xl border border-red-100">
-                <p className="text-xs font-bold text-red-400 uppercase tracking-wider mb-1">Manutenção</p>
+              <div className="p-5 bg-red-50 rounded-xl border border-red-100">
+                <p className="text-[10px] font-bold text-red-500 uppercase tracking-wider mb-1">Manutenção</p>
                 <div className="text-2xl font-bold text-red-600">{formatCurrency(man)}</div>
               </div>
-              <div className="p-5 bg-green-50 rounded-2xl border border-green-200 text-center flex flex-col justify-center">
-                <p className="text-xs font-bold text-green-600 uppercase tracking-wider mb-1">Lucro Líquido</p>
-                <div className="text-4xl font-black text-green-700">{formatCurrency(lucro)}</div>
+              <div className="p-5 bg-[#22c55e]/10 rounded-xl border border-[#22c55e]/20 text-center flex flex-col justify-center">
+                <p className="text-[10px] font-bold text-[#22c55e] uppercase tracking-wider mb-1">Lucro Líquido</p>
+                <div className="text-4xl font-black text-[#22c55e]">{formatCurrency(lucro)}</div>
               </div>
             </div>
           </div>
