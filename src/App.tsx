@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Plus, Printer, Trash2, LayoutDashboard, Users, FolderOpen, Settings, Calculator, FileText } from 'lucide-react';
+import { Plus, Printer, Trash2, LayoutDashboard, Users, FolderOpen, Settings, Calculator, FileText, Eye, EyeOff, Sun, Moon, LogOut } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface LoadItem {
@@ -17,7 +17,127 @@ const StepBadge = ({ num }: { num: number }) => (
   </span>
 );
 
+const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email && password) {
+      onLogin();
+    } else {
+      alert('Por favor, preencha todos os campos.');
+    }
+  };
+
+  const handleRecoverPassword = () => {
+    alert('Instruções de recuperação de senha enviadas para o seu e-mail.');
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col justify-center items-center p-4 transition-colors duration-300">
+      <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 border border-slate-100 dark:border-slate-700">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/30">
+            <span className="text-white font-black text-2xl">SP</span>
+          </div>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-white">SOLARPRO</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-2">Faça login para acessar o sistema</p>
+        </div>
+
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">E-mail</label>
+            <input 
+              type="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
+              placeholder="seu@email.com"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Senha</label>
+            <div className="relative">
+              <input 
+                type={showPassword ? "text" : "password"} 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white pr-10"
+                placeholder="••••••••"
+              />
+              <button 
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between text-sm">
+            <button type="button" onClick={handleRecoverPassword} className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium">
+              Esqueceu a senha?
+            </button>
+          </div>
+
+          <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-colors shadow-lg shadow-blue-500/30">
+            Entrar
+          </button>
+        </form>
+
+        <div className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
+          Não tem uma conta? <button className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-bold">Cadastre-se</button>
+        </div>
+      </div>
+
+      <div className="mt-8 text-center text-sm text-slate-500 dark:text-slate-500">
+        <p>Suporte e Contato:</p>
+        <p className="font-medium">mgssystemsolarclientes@gmail.com</p>
+        <p className="font-medium">Tel: +55 (88) 988360143</p>
+      </div>
+    </div>
+  );
+};
+
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return localStorage.getItem('isAuthenticated') === 'true';
+  });
+
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    return (localStorage.getItem('theme') as 'light' | 'dark') || 'light';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
+  const handleLogin = () => {
+    localStorage.setItem('isAuthenticated', 'true');
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    setIsAuthenticated(false);
+  };
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
+
+  if (!isAuthenticated) {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
+
   const [itens, setItens] = useState<LoadItem[]>([
     { id: '1', nome: "Geladeira", qtd: 1, w: 150, h: 24, fatorPartida: 5 },
     { id: '2', nome: "Lâmpadas (10W)", qtd: 10, w: 10, h: 5, fatorPartida: 1 },
@@ -170,9 +290,9 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f1f5f9] font-sans text-slate-800 flex">
+    <div className="min-h-screen bg-[#f1f5f9] dark:bg-slate-900 font-sans text-slate-800 dark:text-slate-100 flex transition-colors duration-300">
       {/* Sidebar */}
-      <aside className="w-64 bg-[#0f172a] text-white hidden md:flex flex-col fixed h-full z-10">
+      <aside className="w-64 bg-[#0f172a] dark:bg-slate-950 text-white hidden md:flex flex-col fixed h-full z-10 transition-colors duration-300">
         <div className="p-6 flex items-center gap-3 border-b border-slate-800">
           <div className="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center">
             <span className="font-bold text-[#0f172a]">S</span>
@@ -207,6 +327,22 @@ export default function App() {
             Configurações
           </a>
         </nav>
+        <div className="p-4 border-t border-slate-800 space-y-2">
+          <button 
+            onClick={toggleTheme}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-400 font-medium transition-colors"
+          >
+            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+            {theme === 'light' ? 'Modo Escuro' : 'Modo Claro'}
+          </button>
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-900/30 text-red-400 font-medium transition-colors"
+          >
+            <LogOut size={20} />
+            Sair
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}
@@ -214,8 +350,8 @@ export default function App() {
         <div className="max-w-7xl mx-auto">
           <header className="flex justify-between items-center mb-8 print:hidden">
             <div>
-              <h2 className="text-2xl font-bold text-slate-800">Dimensionamento Solar</h2>
-              <p className="text-slate-500 text-sm">Configure o sistema off-grid para seu cliente</p>
+              <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Dimensionamento Solar</h2>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">Configure o sistema off-grid para seu cliente</p>
             </div>
             <button 
               onClick={() => window.print()} 
@@ -228,64 +364,64 @@ export default function App() {
 
           <div className="grid xl:grid-cols-3 gap-6">
             <div className="xl:col-span-2 space-y-6">
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                <h2 className="font-bold text-slate-800 mb-5 flex items-center text-lg">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+                <h2 className="font-bold text-slate-800 dark:text-white mb-5 flex items-center text-lg">
                   <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-3">1</span>
                   Dados do Cliente
                 </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <label className="block text-sm font-medium text-slate-700">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Nome do Cliente:
                   <input 
                     type="text" 
                     value={clienteNome} 
                     onChange={(e) => setClienteNome(e.target.value)} 
-                    className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    className="mt-1.5 w-full bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
                     placeholder="Ex: João da Silva"
                   />
                 </label>
-                <label className="block text-sm font-medium text-slate-700">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Telefone:
                   <input 
                     type="text" 
                     value={clienteTelefone} 
                     onChange={(e) => setClienteTelefone(e.target.value)} 
-                    className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    className="mt-1.5 w-full bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
                     placeholder="(00) 00000-0000"
                   />
                 </label>
-                <label className="block text-sm font-medium text-slate-700">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Email:
                   <input 
                     type="email" 
                     value={clienteEmail} 
                     onChange={(e) => setClienteEmail(e.target.value)} 
-                    className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    className="mt-1.5 w-full bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
                     placeholder="joao@email.com"
                   />
                 </label>
-                <label className="block text-sm font-medium text-slate-700">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Cidade/UF:
                   <input 
                     type="text" 
                     value={clienteCidade} 
                     onChange={(e) => setClienteCidade(e.target.value)} 
-                    className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    className="mt-1.5 w-full bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
                     placeholder="São Paulo - SP"
                   />
                 </label>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
               <div className="flex justify-between items-center mb-5">
-                <h2 className="font-bold text-slate-800 flex items-center text-lg">
+                <h2 className="font-bold text-slate-800 dark:text-white flex items-center text-lg">
                   <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-3">2</span>
                   Cargas Solares
                 </h2>
                 <button 
                   onClick={adicionarLinha} 
-                  className="flex items-center gap-1.5 text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-lg font-medium transition-colors"
+                  className="flex items-center gap-1.5 text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 px-3 py-1.5 rounded-lg font-medium transition-colors"
                 >
                   <Plus size={16} /> Adicionar Carga
                 </button>
@@ -293,7 +429,7 @@ export default function App() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b text-sm text-slate-400">
+                    <tr className="border-b dark:border-slate-700 text-sm text-slate-400">
                       <th className="pb-2 font-medium">Equipamento</th>
                       <th className="pb-2 font-medium w-20">Qtd.</th>
                       <th className="pb-2 font-medium w-24">Pot. Unitária (W)</th>
@@ -306,13 +442,13 @@ export default function App() {
                   </thead>
                   <tbody>
                     {itens.map((item) => (
-                      <tr key={item.id} className="border-b last:border-0">
+                      <tr key={item.id} className="border-b dark:border-slate-700 last:border-0">
                         <td className="py-2 pr-2">
                           <input 
                             type="text" 
                             value={item.nome} 
                             onChange={(e) => updateItem(item.id, 'nome', e.target.value)} 
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                            className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                             placeholder="Nome do equipamento"
                           />
                         </td>
@@ -321,7 +457,7 @@ export default function App() {
                             type="number" 
                             value={item.qtd || ''} 
                             onChange={(e) => updateItem(item.id, 'qtd', e.target.value)} 
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                            className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                             min="0"
                           />
                         </td>
@@ -330,12 +466,12 @@ export default function App() {
                             type="number" 
                             value={item.w || ''} 
                             onChange={(e) => updateItem(item.id, 'w', e.target.value)} 
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                            className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                             min="0"
                           />
                         </td>
                         <td className="py-2 pr-2">
-                          <div className="w-full bg-slate-100/50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-500 font-medium">
+                          <div className="w-full bg-slate-100/50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-500 dark:text-slate-400 font-medium">
                             {((item.w || 0) * (item.qtd || 0)).toLocaleString('pt-BR')}
                           </div>
                         </td>
@@ -344,7 +480,7 @@ export default function App() {
                             type="number" 
                             value={item.fatorPartida || ''} 
                             onChange={(e) => updateItem(item.id, 'fatorPartida', e.target.value)} 
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                            className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                             min="1"
                             step="0.1"
                             title="Multiplicador de pico de partida (ex: 5 para geladeiras)"
@@ -355,18 +491,18 @@ export default function App() {
                             type="number" 
                             value={item.h || ''} 
                             onChange={(e) => updateItem(item.id, 'h', e.target.value)} 
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                            className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                             min="0"
                             max="24"
                           />
                         </td>
-                        <td className="py-2 pr-4 text-right font-bold text-slate-700">
+                        <td className="py-2 pr-4 text-right font-bold text-slate-700 dark:text-slate-300">
                           {((item.w || 0) * (item.h || 0) * (item.qtd || 0)).toLocaleString('pt-BR')}
                         </td>
                         <td className="py-2 text-right">
                           <button 
                             onClick={() => removerItem(item.id)}
-                            className="text-slate-300 hover:text-red-500 transition-colors p-1"
+                            className="text-slate-300 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors p-1"
                             title="Remover item"
                           >
                             <Trash2 size={18} />
@@ -376,16 +512,16 @@ export default function App() {
                     ))}
                   </tbody>
                   <tfoot>
-                    <tr className="border-t-2 border-slate-200">
-                      <td colSpan={6} className="py-3 text-right font-medium text-slate-500 text-sm">
+                    <tr className="border-t-2 border-slate-200 dark:border-slate-700">
+                      <td colSpan={6} className="py-3 text-right font-medium text-slate-500 dark:text-slate-400 text-sm">
                         Consumo Base
                       </td>
-                      <td className="py-3 pr-4 text-right font-bold text-slate-800 text-lg">
+                      <td className="py-3 pr-4 text-right font-bold text-slate-800 dark:text-white text-lg">
                         {totalWh.toLocaleString('pt-BR')} Wh
                       </td>
                       <td></td>
                     </tr>
-                    <tr className="border-t border-slate-100 bg-[#f59e0b]/10">
+                    <tr className="border-t border-slate-100 dark:border-slate-700 bg-[#f59e0b]/10">
                       <td colSpan={6} className="py-3 pr-4 text-right font-medium text-[#f59e0b] text-sm">
                         <div className="flex justify-end items-center gap-2">
                           Consumo Corrigido (+
@@ -393,7 +529,7 @@ export default function App() {
                             type="number" 
                             value={fatorCorrecaoConsumo} 
                             onChange={(e) => setFatorCorrecaoConsumo(parseFloat(e.target.value) || 0)} 
-                            className="w-14 bg-white border border-[#f59e0b]/30 rounded-md px-2 py-1 text-center text-[#f59e0b] focus:outline-none focus:ring-2 focus:ring-[#f59e0b]/50"
+                            className="w-14 bg-white dark:bg-slate-800 border border-[#f59e0b]/30 rounded-md px-2 py-1 text-center text-[#f59e0b] focus:outline-none focus:ring-2 focus:ring-[#f59e0b]/50"
                             min="0"
                           />
                           %)
@@ -411,152 +547,152 @@ export default function App() {
 
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-6">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-5">
-                  <h3 className="font-bold text-slate-800 flex items-center text-lg">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 space-y-5">
+                  <h3 className="font-bold text-slate-800 dark:text-white flex items-center text-lg">
                     <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-3">3</span>
                     Configuração do Kit
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <label className="block text-sm font-medium text-slate-700">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                       Potência Painel (W): 
                       <input 
                         type="number" 
                         value={potPainel || ''} 
                         onChange={(e) => setPotPainel(parseFloat(e.target.value) || 0)} 
-                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        className="mt-1.5 w-full bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
                       />
                     </label>
-                    <label className="block text-sm font-medium text-slate-700">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                       Margem Seg. Consumo (%): 
                       <input 
                         type="number" 
                         value={fatorCorrecaoConsumo || ''} 
                         onChange={(e) => setFatorCorrecaoConsumo(parseFloat(e.target.value) || 0)} 
-                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        className="mt-1.5 w-full bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
                         min="0"
                       />
                     </label>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <label className="block text-sm font-medium text-slate-700">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                       Efic. Inversor (%): 
                       <input 
                         type="number" 
                         value={eficienciaInversor || ''} 
                         onChange={(e) => setEficienciaInversor(parseFloat(e.target.value) || 0)} 
-                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        className="mt-1.5 w-full bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
                         min="1"
                         max="100"
                       />
                     </label>
-                    <label className="block text-sm font-medium text-slate-700">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                       Efic. Geral Sist. (%): 
                       <input 
                         type="number" 
                         value={eficienciaSistema || ''} 
                         onChange={(e) => setEficienciaSistema(parseFloat(e.target.value) || 0)} 
-                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        className="mt-1.5 w-full bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
                         min="1"
                         max="100"
                       />
                     </label>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <label className="block text-sm font-medium text-slate-700">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                       Tensão do Sistema:
                       <select 
                         value={tensao} 
                         onChange={(e) => setTensao(Number(e.target.value))}
-                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        className="mt-1.5 w-full bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
                       >
                         <option value={12}>12V</option>
                         <option value={24}>24V</option>
                         <option value={48}>48V</option>
                       </select>
                     </label>
-                    <label className="block text-sm font-medium text-slate-700">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                       Comprimento Cabo (m):
                       <input 
                         type="number" 
                         value={comprimentoCabo || ''} 
                         onChange={(e) => setComprimentoCabo(parseFloat(e.target.value) || 0)} 
-                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        className="mt-1.5 w-full bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
                         min="1"
                       />
                     </label>
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-5">
-                  <h3 className="font-bold text-slate-800 flex items-center text-lg">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 space-y-5">
+                  <h3 className="font-bold text-slate-800 dark:text-white flex items-center text-lg">
                     <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-3">4</span>
                     Detalhes da Bateria
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <label className="block text-sm font-medium text-slate-700">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                       Tipo de Bateria:
                       <select 
                         value={tipoBateria} 
                         onChange={(e) => setTipoBateria(e.target.value)}
-                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        className="mt-1.5 w-full bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
                       >
                         <option value="Chumbo">Chumbo-Ácido</option>
                         <option value="Lítio">Lítio</option>
                       </select>
                     </label>
-                    <label className="block text-sm font-medium text-slate-700">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                       Dias de Autonomia:
                       <input 
                         type="number" 
                         value={diasAutonomia || ''} 
                         onChange={(e) => setDiasAutonomia(parseFloat(e.target.value) || 0)} 
-                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        className="mt-1.5 w-full bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
                         min="1"
                       />
                     </label>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <label className="block text-sm font-medium text-slate-700">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                       Profund. Descarga (DoD %):
                       <input 
                         type="number" 
                         value={dod || ''} 
                         onChange={(e) => setDod(parseFloat(e.target.value) || 0)} 
-                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        className="mt-1.5 w-full bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
                         min="1"
                         max="100"
                       />
                     </label>
-                    <label className="block text-sm font-medium text-slate-700">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                       Efic. Coulombica (%):
                       <input 
                         type="number" 
                         value={eficienciaCoulombica || ''} 
                         onChange={(e) => setEficienciaCoulombica(parseFloat(e.target.value) || 0)} 
-                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        className="mt-1.5 w-full bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
                         min="1"
                         max="100"
                       />
                     </label>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <label className="block text-sm font-medium text-slate-700">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                       Capacidade Individual (Ah):
                       <input 
                         type="number" 
                         value={capacidadeBateriaIndividual || ''} 
                         onChange={(e) => setCapacidadeBateriaIndividual(parseFloat(e.target.value) || 0)} 
-                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        className="mt-1.5 w-full bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
                         min="1"
                       />
                     </label>
-                    <label className="block text-sm font-medium text-slate-700">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                       Tensão Individual (V):
                       <input 
                         type="number" 
                         value={tensaoBateriaIndividual || ''} 
                         onChange={(e) => setTensaoBateriaIndividual(parseFloat(e.target.value) || 0)} 
-                        className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        className="mt-1.5 w-full bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
                         min="1"
                       />
                     </label>
@@ -586,18 +722,18 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-5 border-l-4 border-[#22c55e]">
-                  <h3 className="font-bold text-slate-800 flex items-center text-lg">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 space-y-5 border-l-4 border-[#22c55e]">
+                  <h3 className="font-bold text-slate-800 dark:text-white flex items-center text-lg">
                     <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-3">6</span>
                     Queda de Tensão (CC)
                   </h3>
-                  <label className="block text-sm font-medium text-slate-700">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                     Comprimento do Cabo (m):
                     <input 
                       type="number" 
                       value={comprimentoCabo || ''} 
                       onChange={(e) => setComprimentoCabo(parseFloat(e.target.value) || 0)} 
-                      className="mt-1.5 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                      className="mt-1.5 w-full bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
                       min="0.5"
                       step="0.5"
                     />
@@ -609,13 +745,13 @@ export default function App() {
                         {quedaPercentual.toFixed(2)}% ({quedaTensao.toFixed(2)}V)
                       </span>
                     </div>
-                    <div className="w-full bg-slate-100 rounded-full h-2">
+                    <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2">
                       <div 
                         className={`h-2 rounded-full transition-all duration-500 ${quedaPercentual <= 3 ? 'bg-[#22c55e]' : quedaPercentual <= 5 ? 'bg-[#f59e0b]' : 'bg-red-500'}`} 
                         style={{ width: `${Math.min(quedaPercentual, 100)}%` }}
                       ></div>
                     </div>
-                    <p className="text-[11px] text-slate-500 mt-2 font-medium">
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 font-medium">
                       {quedaPercentual <= 3 
                         ? 'Queda aceitável (≤ 3%).' 
                         : quedaPercentual <= 5 
@@ -652,8 +788,8 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-5">
-                <h3 className="font-bold text-slate-800 flex items-center text-lg">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 space-y-5">
+                <h3 className="font-bold text-slate-800 dark:text-white flex items-center text-lg">
                   <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-3">8</span>
                   Balanço Energético Diário
                 </h3>
@@ -670,12 +806,12 @@ export default function App() {
                       ]}
                       margin={{ top: 20, right: 0, left: -20, bottom: 0 }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#334155' : '#e2e8f0'} />
                       <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
                       <YAxis tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
                       <Tooltip 
-                        cursor={{ fill: '#f1f5f9' }}
-                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                        cursor={{ fill: theme === 'dark' ? '#1e293b' : '#f1f5f9' }}
+                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', backgroundColor: theme === 'dark' ? '#0f172a' : '#ffffff', color: theme === 'dark' ? '#f8fafc' : '#0f172a' }}
                         formatter={(value: number) => [`${value.toLocaleString('pt-BR')} Wh`, '']}
                       />
                       <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
@@ -689,21 +825,21 @@ export default function App() {
             </div>
           </div>
 
-          <div className="mt-6 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:break-inside-avoid">
-            <h2 className="font-bold text-slate-800 flex items-center text-lg mb-6">
+          <div className="mt-6 bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 print:break-inside-avoid">
+            <h2 className="font-bold text-slate-800 dark:text-white flex items-center text-lg mb-6">
               <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-3">9</span>
               Análise de ROI (10 Anos)
             </h2>
             <div className="grid md:grid-cols-3 gap-6">
-              <div className="p-5 bg-slate-50 rounded-xl border border-slate-200">
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Investimento</p>
-                <div className="text-2xl font-bold text-slate-800">{formatCurrency(inv)}</div>
+              <div className="p-5 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700">
+                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Investimento</p>
+                <div className="text-2xl font-bold text-slate-800 dark:text-white">{formatCurrency(inv)}</div>
               </div>
-              <div className="p-5 bg-red-50 rounded-xl border border-red-100">
-                <p className="text-[10px] font-bold text-red-500 uppercase tracking-wider mb-1">Manutenção</p>
-                <div className="text-2xl font-bold text-red-600">{formatCurrency(man)}</div>
+              <div className="p-5 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-100 dark:border-red-900/20">
+                <p className="text-[10px] font-bold text-red-500 dark:text-red-400 uppercase tracking-wider mb-1">Manutenção</p>
+                <div className="text-2xl font-bold text-red-600 dark:text-red-500">{formatCurrency(man)}</div>
               </div>
-              <div className="p-5 bg-[#22c55e]/10 rounded-xl border border-[#22c55e]/20 text-center flex flex-col justify-center">
+              <div className="p-5 bg-[#22c55e]/10 dark:bg-[#22c55e]/5 rounded-xl border border-[#22c55e]/20 dark:border-[#22c55e]/10 text-center flex flex-col justify-center">
                 <p className="text-[10px] font-bold text-[#22c55e] uppercase tracking-wider mb-1">Lucro Líquido</p>
                 <div className="text-4xl font-black text-[#22c55e]">{formatCurrency(lucro)}</div>
               </div>
