@@ -1,1 +1,42 @@
 @import "tailwindcss";
+
+@media print {
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+  
+  /* Force background colors and graphics to print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Make inputs look like regular text in print */
+  input, select, textarea {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    color: black !important;
+    -webkit-appearance: none;
+    appearance: none;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+
+  /* Hide scrollbars */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Ensure page breaks don't cut content awkwardly */
+  .print\:break-inside-avoid {
+    break-inside: avoid;
+  }
+  
+  /* Remove shadows for a cleaner print look */
+  .shadow-sm, .shadow-lg, .shadow-md {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+}

@@ -388,7 +388,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#f1f5f9] dark:bg-slate-900 font-sans text-slate-800 dark:text-slate-100 flex transition-colors duration-300">
       {/* Sidebar */}
-      <aside className={`${isSidebarCollapsed ? 'w-20' : 'w-64'} bg-[#0f172a] dark:bg-slate-950 text-white hidden md:flex flex-col fixed h-full z-10 transition-all duration-300`}>
+      <aside className={`${isSidebarCollapsed ? 'w-20' : 'w-64'} bg-[#0f172a] dark:bg-slate-950 text-white hidden md:flex flex-col fixed h-full z-10 transition-all duration-300 print:hidden`}>
         <button
           onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           className="absolute -right-3 top-8 bg-blue-600 text-white p-1 rounded-full shadow-lg hover:bg-blue-700 transition-colors z-20"
@@ -434,10 +434,14 @@ export default function App() {
             <HelpCircle size={20} className="shrink-0" />
             {!isSidebarCollapsed && <span className="whitespace-nowrap">Manual e Suporte</span>}
           </button>
-          <a href="#" className={`flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-400 font-medium transition-colors ${isSidebarCollapsed ? 'justify-center px-0' : ''}`} title="Relatórios">
+          <button 
+            onClick={() => window.print()} 
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-400 font-medium transition-colors ${isSidebarCollapsed ? 'justify-center px-0' : ''}`} 
+            title="Relatórios"
+          >
             <FileText size={20} className="shrink-0" />
             {!isSidebarCollapsed && <span className="whitespace-nowrap">Relatórios</span>}
-          </a>
+          </button>
           <a href="#" className={`flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-400 font-medium transition-colors ${isSidebarCollapsed ? 'justify-center px-0' : ''}`} title="Configurações">
             <Settings size={20} className="shrink-0" />
             {!isSidebarCollapsed && <span className="whitespace-nowrap">Configurações</span>}
@@ -464,10 +468,29 @@ export default function App() {
       </aside>
 
       {/* Main Content */}
-      <div className={`flex-1 transition-all duration-300 ${isSidebarCollapsed ? 'md:ml-20' : 'md:ml-64'} p-4 md:p-8`}>
+      <div className={`flex-1 transition-all duration-300 ${isSidebarCollapsed ? 'md:ml-20' : 'md:ml-64'} p-4 md:p-8 print:ml-0 print:p-0 print:bg-white print:text-black`}>
         <div className="max-w-7xl mx-auto">
           {activeTab === 'dimensionamento' ? (
             <>
+              {/* Print Header */}
+              <div className="hidden print:block mb-8 border-b-2 border-slate-800 pb-6">
+                <div className="flex justify-between items-end">
+                  <div>
+                    <h1 className="text-3xl font-black tracking-tight text-slate-900">
+                      SOLAR<span className="text-yellow-500">PRO</span>
+                    </h1>
+                    <p className="text-slate-600 font-medium mt-1">Proposta Técnica e Comercial - Sistema Off-Grid</p>
+                  </div>
+                  <div className="text-right text-sm text-slate-600">
+                    <p>Data: {new Date().toLocaleDateString('pt-BR')}</p>
+                    {clienteNome && <p className="font-bold text-slate-800 mt-1">Cliente: {clienteNome}</p>}
+                    {clienteTelefone && <p>Telefone: {clienteTelefone}</p>}
+                    {clienteEmail && <p>Email: {clienteEmail}</p>}
+                    {clienteCidade && <p>Cidade/UF: {clienteCidade}</p>}
+                  </div>
+                </div>
+              </div>
+
               <header className="flex justify-between items-center mb-8 print:hidden">
             <div>
               <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Dimensionamento Solar</h2>
@@ -484,7 +507,7 @@ export default function App() {
 
           <div className="grid xl:grid-cols-3 gap-6">
             <div className="xl:col-span-2 space-y-6">
-              <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 print:break-inside-avoid">
                 <h2 className="font-bold text-slate-800 dark:text-white mb-5 flex items-center text-lg">
                   <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-3">1</span>
                   Dados do Cliente
@@ -533,7 +556,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 print:break-inside-avoid">
               <div className="flex justify-between items-center mb-5">
                 <h2 className="font-bold text-slate-800 dark:text-white flex items-center text-lg">
                   <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-3">2</span>
@@ -541,7 +564,7 @@ export default function App() {
                 </h2>
                 <button 
                   onClick={adicionarLinha} 
-                  className="flex items-center gap-1.5 text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 px-3 py-1.5 rounded-lg font-medium transition-colors"
+                  className="flex items-center gap-1.5 text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 px-3 py-1.5 rounded-lg font-medium transition-colors print:hidden"
                 >
                   <Plus size={16} /> Adicionar Carga
                 </button>
@@ -557,7 +580,7 @@ export default function App() {
                       <th className="pb-2 font-medium w-24" title="Fator IP/In (Pico de Partida)">Fator Partida</th>
                       <th className="pb-2 font-medium w-24">Horas/Dia</th>
                       <th className="pb-2 font-medium w-32 text-right">Consumo Diário (Wh)</th>
-                      <th className="pb-2 font-medium w-10"></th>
+                      <th className="pb-2 font-medium w-10 print:hidden"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -619,7 +642,7 @@ export default function App() {
                         <td className="py-2 pr-4 text-right font-bold text-slate-700 dark:text-slate-300">
                           {((item.w || 0) * (item.h || 0) * (item.qtd || 0)).toLocaleString('pt-BR')}
                         </td>
-                        <td className="py-2 text-right">
+                        <td className="py-2 text-right print:hidden">
                           <button 
                             onClick={() => removerItem(item.id)}
                             className="text-slate-300 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors p-1"
@@ -667,7 +690,7 @@ export default function App() {
 
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-6">
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 space-y-5">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 space-y-5 print:break-inside-avoid">
                   <h3 className="font-bold text-slate-800 dark:text-white flex items-center text-lg">
                     <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-3">3</span>
                     Configuração do Kit
@@ -780,7 +803,7 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 space-y-5">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 space-y-5 print:break-inside-avoid">
                   <h3 className="font-bold text-slate-800 dark:text-white flex items-center text-lg">
                     <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-3">4</span>
                     Detalhes da Bateria
@@ -921,7 +944,7 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 space-y-5 border-l-4 border-[#22c55e]">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 space-y-5 border-l-4 border-[#22c55e] print:break-inside-avoid">
                   <h3 className="font-bold text-slate-800 dark:text-white flex items-center text-lg">
                     <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-3">6</span>
                     Queda de Tensão (CC)
@@ -963,7 +986,7 @@ export default function App() {
             </div>
 
             <div className="space-y-6">
-              <div className="bg-[#0f172a] p-8 rounded-2xl text-white shadow-lg flex flex-col justify-center relative overflow-hidden">
+              <div className="bg-[#0f172a] p-8 rounded-2xl text-white shadow-lg flex flex-col justify-center relative overflow-hidden print:break-inside-avoid">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-[#1e3a8a] rounded-full blur-3xl opacity-20 -translate-y-1/2 translate-x-1/3"></div>
                 <h3 className="text-[#f59e0b] font-bold uppercase text-xs tracking-wider mb-8 flex items-center relative z-10">
                   <span className="w-6 h-6 rounded bg-[#f59e0b]/20 text-[#f59e0b] flex items-center justify-center mr-2">7</span>
@@ -990,7 +1013,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 space-y-5">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 space-y-5 print:break-inside-avoid">
                 <h3 className="font-bold text-slate-800 dark:text-white flex items-center text-lg">
                   <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-3">8</span>
                   Balanço Energético Diário
@@ -1020,6 +1043,41 @@ export default function App() {
                       <Bar dataKey="Consumo Diário Total" fill="#94a3b8" radius={[4, 4, 0, 0]} maxBarSize={60} />
                       <Bar dataKey="Consumo Corrigido" fill="#ef4444" radius={[4, 4, 0, 0]} maxBarSize={60} />
                       <Bar dataKey="Geração Solar Estimada" fill="#22c55e" radius={[4, 4, 0, 0]} maxBarSize={60} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 space-y-5 print:break-inside-avoid">
+                <h3 className="font-bold text-slate-800 dark:text-white flex items-center text-lg">
+                  <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-3">9</span>
+                  Balanço Energético Mensal
+                </h3>
+                <div className="h-72 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={[
+                        {
+                          name: 'Energia (kWh)',
+                          'Consumo Mensal': Number((totalWh * 30 / 1000).toFixed(1)),
+                          'Consumo Corrigido Mensal': Number((consumoCorrigido * 30 / 1000).toFixed(1)),
+                          'Geração Mensal Estimada': Number((geracaoEstimada * 30 / 1000).toFixed(1)),
+                        },
+                      ]}
+                      margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#334155' : '#e2e8f0'} />
+                      <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
+                      <Tooltip 
+                        cursor={{ fill: theme === 'dark' ? '#1e293b' : '#f1f5f9' }}
+                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', backgroundColor: theme === 'dark' ? '#0f172a' : '#ffffff', color: theme === 'dark' ? '#f8fafc' : '#0f172a' }}
+                        formatter={(value: number) => [`${value.toLocaleString('pt-BR')} kWh`, '']}
+                      />
+                      <Legend iconType="circle" wrapperStyle={{ fontSize: '13px', paddingTop: '20px' }} />
+                      <Bar dataKey="Consumo Mensal" fill="#94a3b8" radius={[4, 4, 0, 0]} maxBarSize={60} />
+                      <Bar dataKey="Consumo Corrigido Mensal" fill="#ef4444" radius={[4, 4, 0, 0]} maxBarSize={60} />
+                      <Bar dataKey="Geração Mensal Estimada" fill="#22c55e" radius={[4, 4, 0, 0]} maxBarSize={60} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
