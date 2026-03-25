@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Plus, Printer, Trash2, LayoutDashboard, Users, FolderOpen, Settings, Calculator, FileText, Eye, EyeOff, Sun, Moon, LogOut, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Printer, Trash2, LayoutDashboard, Users, FolderOpen, Settings, Calculator, FileText, Eye, EyeOff, Sun, Moon, LogOut, HelpCircle, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 interface LoadItem {
@@ -240,66 +240,126 @@ export default function App() {
       bateriasEmParalelo,
       bateriasEmSerie,
       totalBaterias,
-      custoTotalBaterias
+      custoTotalBaterias,
+      alertasTecnicos
     } = useMemo(() => {
       let totalWh = 0;
-      let totalWNominal = 0;
-      let maiorPicoExtra = 0;
+      let cargaSimultanea = 0;
+      let maiorMotorPico = 0;
+
       const hsp = horasSolPleno > 0 ? horasSolPleno : 5;
   
       itens.forEach(it => {
         const qtd = it.qtd > 0 ? it.qtd : 1;
-        totalWh += (it.w * it.h * qtd);
-        totalWNominal += (it.w * qtd);
-        
-        // O pico extra é a potência que o equipamento exige ALÉM da sua potência nominal na partida
+        const w = it.w > 0 ? it.w : 0;
+        const h = it.h > 0 ? it.h : 0;
         const fator = it.fatorPartida > 0 ? it.fatorPartida : 1;
-        const picoExtra = (it.w * qtd) * (fator - 1);
+
+        const consumoItem = w * h * qtd;
+        totalWh += consumoItem;
         
-        if (picoExtra > maiorPicoExtra) maiorPicoExtra = picoExtra;
+        const potenciaItem = w * qtd;
+        cargaSimultanea += potenciaItem;
+        
+        // Se houver motores: Potência_pico = maior_motor × fator_partida
+        const picoItem = w * qtd * fator;
+        if (picoItem > maiorMotorPico) {
+          maiorMotorPico = picoItem;
+        }
       });
   
+      // 5. DIMENSIONAMENTO DO INVERSOR (CORRIGIDO - CRÍTICO)
+      // Potência_base = carga_simultânea × 1.3
+      const potenciaBase = cargaSimultanea * 1.3;
+      // Potência_final_inversor = maior entre: Potência_base e Potência_pico
+      const maiorPico = Math.max(potenciaBase, maiorMotorPico);
+  
+      // Consumo diário corrigido
       const consumoCorrigido = totalWh * (1 + (fatorCorrecaoConsumo / 100));
   
-      // O inversor precisa suportar a soma de todas as potências nominais + o pior pico de partida extra
-      const maiorPico = totalWNominal + maiorPicoExtra;
-  
-      const efi = (eficienciaInversor > 0 ? eficienciaInversor : 100) / 100;
       const efiSys = (eficienciaSistema > 0 ? eficienciaSistema : 100) / 100;
-      const Ed = consumoCorrigido / efi;
-  
-      const nP = Math.ceil((Ed * 1.25) / (hsp * potPainel));
-      const geracaoEstimada = nP * potPainel * hsp * efiSys;
       
+      // 3. DIMENSIONAMENTO DOS PAINÉIS (CORRIGIDO)
+      // Potência_necessária = Consumo_diário / (HSP × eficiência_sistema)
+      const potenciaNecessaria = consumoCorrigido / (hsp * efiSys);
+  
+      // Número de painéis: N_painéis = arredondar_para_cima (Potência_necessária / potência_módulo)
+      let nP = Math.ceil(potenciaNecessaria / potPainel);
+      
+      // Recalcular potência real instalada: Potência_real = N_painéis × potência_módulo
+      let potenciaReal = nP * potPainel;
+      
+      // 2. CÁLCULO DA GERAÇÃO SOLAR (OBRIGATÓRIO CORRETO)
+      // Energia_diária = Potência_total_painéis × HSP × eficiência_sistema
+      let geracaoEstimada = potenciaReal * hsp * efiSys;
+
+      // 7. VALIDAÇÃO INTELIGENTE (ESSENCIAL)
+      // Garantir que geração >= consumo corrigido
+      while (geracaoEstimada < consumoCorrigido) {
+        nP++;
+        potenciaReal = nP * potPainel;
+        geracaoEstimada = potenciaReal * hsp * efiSys;
+      }
+      
+      // 4. BANCO DE BATERIAS (PROFISSIONAL)
+      // Energia necessária: Energia_total = Consumo_diário × dias_autonomia
+      const energiaTotal = consumoCorrigido * diasAutonomia;
+      
+      // Capacidade real considerando perdas: Capacidade_bateria_Wh = Energia_total / (DoD × eficiência_bateria)
       const Kp = dod / 100;
       const Kc = eficienciaCoulombica / 100;
-      const bat = (Ed * fatorTemperatura * diasAutonomia) / (Kp * Kc * tensao);
+      const capacidadeBateriaWh = energiaTotal / (Kp * Kc);
       
-      const bateriasEmParalelo = Math.round(bat / capacidadeBateriaIndividual);
+      // Converter para Ah: Capacidade_Ah = Capacidade_bateria_Wh / Tensão_sistema
+      const bat = capacidadeBateriaWh / tensao;
+      
+      const bateriasEmParalelo = Math.ceil(bat / capacidadeBateriaIndividual);
       const bateriasEmSerie = Math.ceil(tensao / tensaoBateriaIndividual);
       const totalBaterias = bateriasEmParalelo * bateriasEmSerie;
       const custoTotalBaterias = totalBaterias * capacidadeBateriaIndividual * custoAhBateria;
       
-      const amp = (nP * potPainel) / tensao;
+      // 6. CONTROLADOR MPPT (CORRETO)
+      // Corrente do sistema: Corrente = Potência_painéis / Tensão_sistema
+      const correnteSistema = potenciaReal / tensao;
+      // Aplicar margem obrigatória: Corrente_MPPT = Corrente × 1.25
+      const ampControlador = Math.ceil(correnteSistema * 1.25);
       
-      let bitola = amp > 50 ? 16 : (amp > 30 ? 10 : 6);
+      let bitola = ampControlador > 50 ? 16 : (ampControlador > 30 ? 10 : 6);
   
-      const custoPaineis = (nP * potPainel) * custoWpPainel;
+      const custoPaineis = potenciaReal * custoWpPainel;
       const custoInversor = maiorPico * custoWpInversor;
       const inv = custoPaineis + custoInversor;
       const eco = (totalWh / 1000) * 30 * 0.95;
-    const man = (tipoBateria === 'Lítio' || tipoBateria === 'LiFePO4') ? (bat * tensao * 1.2) : (bat * tensao * 3.5);
-    const lucro = ((eco * 12 * 10) - inv - man);
-
-      const ampControlador = isNaN(amp) || !isFinite(amp) ? 0 : Math.ceil(amp * 1.1);
+      const man = (tipoBateria === 'Lítio' || tipoBateria === 'LiFePO4') ? (bat * tensao * 1.2) : (bat * tensao * 3.5);
+      const lucro = ((eco * 12 * 10) - inv - man);
+  
       const quedaTensao = bitola > 0 ? (2 * comprimentoCabo * ampControlador * 0.0175) / bitola : 0;
       const quedaPercentual = tensao > 0 ? (quedaTensao / tensao) * 100 : 0;
   
+      // 9. ALERTAS TÉCNICOS AUTOMÁTICOS
+      const alertasTecnicos: string[] = [];
+      
+      if (maiorMotorPico > potenciaBase) {
+        alertasTecnicos.push("Inversor: O pico de partida dos motores é alto. O inversor calculado já considera este pico, mas verifique se o modelo comercial suporta essa corrente de surto.");
+      }
+      
+      if (diasAutonomia < 2) {
+        alertasTecnicos.push("Bateria Subdimensionada: Autonomia menor que 2 dias. Risco de desligamento em dias nublados e redução da vida útil.");
+      }
+      
+      if (fatorCorrecaoConsumo < 20) {
+        alertasTecnicos.push("Pouca Margem: A margem de segurança do consumo está baixa. Recomendado mínimo de 20%.");
+      }
+
+      if (ampControlador > 80) {
+        alertasTecnicos.push(`MPPT no Limite: A corrente do controlador (${ampControlador}A) é alta. Considere usar múltiplos controladores ou aumentar a tensão do sistema.`);
+      }
+
       return {
-        maiorPico: Math.ceil(maiorPico),
+        maiorPico: isNaN(maiorPico) || !isFinite(maiorPico) ? 0 : Math.ceil(maiorPico),
         nP: isNaN(nP) || !isFinite(nP) ? 0 : nP,
         bat: isNaN(bat) || !isFinite(bat) ? 0 : Math.ceil(bat),
-        amp: ampControlador,
+        amp: isNaN(ampControlador) || !isFinite(ampControlador) ? 0 : ampControlador,
         bitola,
         inv: isNaN(inv) ? 0 : inv,
         man: isNaN(man) ? 0 : man,
@@ -312,9 +372,10 @@ export default function App() {
         bateriasEmParalelo: isNaN(bateriasEmParalelo) || !isFinite(bateriasEmParalelo) ? 0 : bateriasEmParalelo,
         bateriasEmSerie: isNaN(bateriasEmSerie) || !isFinite(bateriasEmSerie) ? 0 : bateriasEmSerie,
         totalBaterias: isNaN(totalBaterias) || !isFinite(totalBaterias) ? 0 : totalBaterias,
-        custoTotalBaterias: isNaN(custoTotalBaterias) || !isFinite(custoTotalBaterias) ? 0 : custoTotalBaterias
+        custoTotalBaterias: isNaN(custoTotalBaterias) || !isFinite(custoTotalBaterias) ? 0 : custoTotalBaterias,
+        alertasTecnicos
       };
-  }, [itens, potPainel, tensao, tipoBateria, comprimentoCabo, eficienciaInversor, fatorCorrecaoConsumo, eficienciaSistema, diasAutonomia, dod, eficienciaCoulombica, fatorTemperatura, capacidadeBateriaIndividual, tensaoBateriaIndividual, custoAhBateria, horasSolPleno]);
+  }, [itens, potPainel, tensao, tipoBateria, comprimentoCabo, eficienciaInversor, fatorCorrecaoConsumo, eficienciaSistema, diasAutonomia, dod, eficienciaCoulombica, fatorTemperatura, capacidadeBateriaIndividual, tensaoBateriaIndividual, custoAhBateria, horasSolPleno, custoWpPainel, custoWpInversor]);
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -854,7 +915,7 @@ export default function App() {
                       <div className="font-bold text-lg">{bitola}mm²</div>
                     </div>
                     <div>
-                      <p className="text-[10px] uppercase text-slate-400 font-semibold tracking-wider">Controlador</p>
+                      <p className="text-[10px] uppercase text-slate-400 font-semibold tracking-wider">Controlador MPPT</p>
                       <div className="font-bold text-lg">{amp}A</div>
                     </div>
                   </div>
@@ -922,6 +983,9 @@ export default function App() {
                     <div className="mt-2 text-sm text-slate-400 font-medium">
                       {bateriasEmParalelo} em paralelo × {bateriasEmSerie} em série
                     </div>
+                    <div className="mt-1 text-sm text-slate-400 font-medium">
+                      Capacidade Total: {(bateriasEmParalelo * capacidadeBateriaIndividual).toLocaleString('pt-BR')} Ah / {((totalBaterias * capacidadeBateriaIndividual * tensaoBateriaIndividual) / 1000).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kWh
+                    </div>
                   </div>
                 </div>
               </div>
@@ -962,6 +1026,23 @@ export default function App() {
               </div>
             </div>
           </div>
+
+          {alertasTecnicos.length > 0 && (
+            <div className="mt-6 bg-amber-50 dark:bg-amber-900/10 p-6 rounded-2xl shadow-sm border border-amber-200 dark:border-amber-900/30 print:break-inside-avoid">
+              <h2 className="font-bold text-amber-800 dark:text-amber-500 flex items-center text-lg mb-4">
+                <AlertTriangle className="w-6 h-6 mr-2" />
+                Alertas Técnicos e Recomendações
+              </h2>
+              <ul className="space-y-3">
+                {alertasTecnicos.map((alerta, idx) => (
+                  <li key={idx} className="flex items-start text-amber-800 dark:text-amber-400 text-sm font-medium">
+                    <span className="mr-2 mt-0.5">•</span>
+                    {alerta}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="mt-6 bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 print:break-inside-avoid">
             <h2 className="font-bold text-slate-800 dark:text-white flex items-center text-lg mb-6">
